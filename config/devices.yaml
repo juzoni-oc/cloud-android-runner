@@ -1,0 +1,85 @@
+# Cloud Android Runner — Device Profiles
+# Each profile defines AVD hardware configuration.
+#
+# To use: docker compose -f docker-compose.yml run -e DEVICE_PROFILE=<name> ...
+
+profiles:
+  pixel_6_pro:
+    model: "Pixel 6 Pro"
+    manufacturer: "Google"
+    api_level: 34
+    screen_resolution: "1440x3120"
+    ram_mb: 4096
+    storage_mb: 2048
+    play_integrity: "MEETS_DEVICE_INTEGRITY"
+    density: 560
+    skin: "pixel_6_pro"
+
+  pixel_7:
+    model: "Pixel 7"
+    manufacturer: "Google"
+    api_level: 33
+    screen_resolution: "1080x2400"
+    ram_mb: 3072
+    storage_mb: 2048
+    play_integrity: "MEETS_DEVICE_INTEGRITY"
+    density: 420
+    skin: "pixel_7"
+
+  samsung_s23:
+    model: "SM-S911B"
+    manufacturer: "samsung"
+    api_level: 33
+    screen_resolution: "1080x2340"
+    ram_mb: 4096
+    storage_mb: 4096
+    play_integrity: "MEETS_DEVICE_INTEGRITY"
+    density: 425
+    skin: "samsung_galaxy_s23"
+
+  oneplus_11:
+    model: "PHB110"
+    manufacturer: "OnePlus"
+    api_level: 33
+    screen_resolution: "1440x3216"
+    ram_mb: 4096
+    storage_mb: 4096
+    play_integrity: "MEETS_DEVICE_INTEGRITY"
+    density: 525
+    skin: "oneplus_11"
+
+  generic_tablet:
+    model: "Pixel C"
+    manufacturer: "Google"
+    api_level: 34
+    screen_resolution: "2560x1800"
+    ram_mb: 4096
+    storage_mb: 4096
+    play_integrity: "MEETS_DEVICE_INTEGRITY"
+    density: 320
+    skin: "pixel_c"
+
+# Host groups — used by orchestrator to manage pools
+pools:
+  high_performance:
+    devices: [pixel_6_pro, samsung_s23]
+    min_ram_mb: 4096
+    description: "High-spec devices for performance-critical apps"
+
+  standard:
+    devices: [pixel_7, oneplus_11, generic_tablet]
+    min_ram_mb: 3072
+    description: "Standard devices for general testing"
+
+  low_power:
+    devices: [pixel_7]
+    min_ram_mb: 2048
+    description: "Budget devices for basic automation"
+
+# Orchestrator settings
+orchestrator:
+  heartbeat_interval_sec: 30
+  boot_timeout_sec: 180
+  health_check_retries: 3
+  screenshot_format: "png"
+  log_retention_days: 7
