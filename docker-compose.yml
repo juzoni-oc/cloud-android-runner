@@ -1,0 +1,91 @@
+version: "3.9"
+
+services:
+  # Primary device node
+  device-01:
+    build: .
+    image: cloud-android-runner:latest
+    container_name: cloud-android-01
+    privileged: true
+    ports:
+      - "5554-5555:5554-5555"    # ADB
+      - "5900:5900"               # VNC
+      - "6080:6080"               # noVNC (web)
+      - "8081:8080"               # API
+    environment:
+      AVD_NAME: "CloudDevice-01"
+      ANDROID_API: "34"
+      DEVICE_PROFILE: "pixel_6_pro"
+      EMULATOR_RAM: "4096"
+      EMULATOR_STORAGE: "2048"
+    volumes:
+      - device-01-data:/data
+      - /dev/kvm:/dev/kvm
+    devices:
+      - /dev/kvm
+    healthcheck:
+      test: ["CMD", "adb", "devices", "-l"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # Secondary device node (scale with --scale device-02=3)
+  device-02:
+    build: .
+    image: cloud-android-runner:latest
+    container_name: cloud-android-02
+    privileged: true
+    ports:
+      - "5556-5557:5554-5555"
+      - "5901:5900"
+      - "6081:6080"
+      - "8082:8080"
+    environment:
+      AVD_NAME: "CloudDevice-02"
+      ANDROID_API: "33"
+      DEVICE_PROFILE: "pixel_7"
+      EMULATOR_RAM: "3072"
+      EMULATOR_STORAGE: "2048"
+    volumes:
+      - device-02-data:/data
+      - /dev/kvm:/dev/kvm
+    devices:
+      - /dev/kvm
+    healthcheck:
+      test: ["CMD", "adb", "devices", "-l"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # Proxy / load balancer (optional)
+  proxy:
+    image: nginx:alpine
+    container_name: cloud-android-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - device-01
+      - device-02
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    driver: bridge
+
+volumes:
+  device-01-data:
+    driver: local
+  device-02-data:
+    driver: local
